@@ -2,6 +2,24 @@
 #Author: Michel Lutz
 #Date: 12.04.2022
 
+#table styling
+table_options <- function(){
+  list(
+    pageLength = min(nrow(df),50), 
+    search = list(regex=TRUE, caseInsensitiv = FALSE),
+    scroller = TRUE,
+    edittable = TRUE,
+    lengthChange = TRUE,
+    initComplete = JS(
+      "function(settings, json) {",
+      "$(this.api().table().header()).css({'background-color': '#517fb9', 'color': '#fff'});",
+      "}"
+    )
+    
+  )
+}
+
+
 #loads all excel files given in the file list
 loadReports <- function(file_list){
   reports <- list()

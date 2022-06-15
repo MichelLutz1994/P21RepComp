@@ -64,10 +64,15 @@ ui <- fluidPage(
     )
 )
 
-
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
     
+    col1 <- "floralwhite" 
+    col2 <- "lightcyan" 
+    col3 <- "lavender"
+    col4 <- "ivory"
+    
+  
     #reports() contains all reports that will be compared as list
     reports <- reactive({loadReports(input$file_paths$datapath)})
     
@@ -169,8 +174,9 @@ server <- function(input, output, session) {
             list <- get_all_reports_with_details(reports())
             df <- list[[reportNumber()]] %>% filter(Domain == focusSummary())
             return(datatable(df , 
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                             options = table_options()))
           } else 
           #show Mode: show simply the raw data sheet
           if(compareWhat() == "none"){  
@@ -179,14 +185,16 @@ server <- function(input, output, session) {
               df[1,1] <- paste("FileName:", input$file_paths$name[reportNumber()])
             }
             return(datatable(df, 
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = 20 , search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                             options = table_options()))
           }
           if(compareWhat() == "Summary" && focusSummary() =="all"){
             df <- get_Vers_Summary(reports())
             return(datatable(df, 
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))) 
+                             options = table_options()) 
                             %>% formatStyle('All Equal ?', backgroundColor = styleEqual(c("TRUE","FALSE"), c('green', 'red'))) )
           }
           if(compareWhat() == "issueSummary" && focusSummary() =="all"){
@@ -194,6 +202,7 @@ server <- function(input, output, session) {
             reportListNew <- combine_id_and_message(reportList)
             df <- get_Issue_Summary_df(reports(), reportListNew)
             return(datatable(df,
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
                              options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
           }
@@ -202,22 +211,25 @@ server <- function(input, output, session) {
             reportListNew <- combine_id_and_message(reportList)
             df <- get_compare_Issue_df(focusSummary(), reportListNew)
             return(datatable(df,
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                             options =  table_options()))
           }
           if(compareWhat() == "Dataset Summary" && focusSummary() == "processed"){
             list <- get_all_reports_with_dataset(reports())
             df <- dataset_processed_first_try(list)
             return(datatable(df, 
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                             options =  table_options()))
           }
           if(compareWhat() == "Dataset Summary" && focusSummary() == "unprocessed"){
             list <- get_all_reports_with_dataset(reports())
             df <- dataset_unprocessed_first_try(list)
             return(datatable(df,
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                             options =  table_options()))
           }
           if(compareWhat() == "Dataset Summary" && focusSummary() == "all - colorset 1"){
             list <- get_all_reports_with_dataset(reports())
@@ -225,16 +237,18 @@ server <- function(input, output, session) {
             if(nrow(df) == 4){
                 return(datatable(df, 
                                  filter = list(position = 'top', clear = FALSE),
-                                 options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                       %>% formatStyle('Domain', backgroundColor = 'azure')
-                       %>% formatStyle(c('Source Rep1', 'Records Rep1', 'Rejects Rep1'), backgroundColor = 'aquamarine') )
+                                 class = "cell-border",
+                                 options = table_options()) 
+                       %>% formatStyle('Domain', backgroundColor = col1)
+                       %>% formatStyle(c('Source Rep1', 'Records Rep1', 'Rejects Rep1'), backgroundColor = col1) )
             } else {
                 return(datatable(df, 
                                  filter = list(position = 'top', clear = FALSE),
-                                 options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                       %>% formatStyle('Domain', backgroundColor = 'azure')
-                       %>% formatStyle(c('Source Rep1', 'Records Rep1', 'Rejects Rep1'), backgroundColor = 'aquamarine')
-                       %>% formatStyle(c('Source Rep2', 'Records Rep2', 'Rejects Rep2'), backgroundColor = 'cyan'))
+                                 class = "cell-border",
+                                 options = table_options()) 
+                       %>% formatStyle('Domain', backgroundColor = col1)
+                       %>% formatStyle(c('Source Rep1', 'Records Rep1', 'Rejects Rep1'), backgroundColor = col2)
+                       %>% formatStyle(c('Source Rep2', 'Records Rep2', 'Rejects Rep2'), backgroundColor = col3))
             }
             
           }
@@ -243,20 +257,22 @@ server <- function(input, output, session) {
             df <- get_all_DatasetsSummary(list)
             if(nrow(df) == 4){
                 return(datatable(df, 
+                                 class = "cell-border",
                                  filter = list(position = 'top', clear = FALSE),
-                                 options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                       %>% formatStyle('Domain', backgroundColor = 'azure')
-                       %>% formatStyle(c('Source Rep1'), backgroundColor = 'aquamarine')
-                       %>% formatStyle(c('Records Rep1'), backgroundColor = 'cyan')
-                       %>% formatStyle(c('Rejects Rep1'), backgroundColor = 'lightcoral'))
+                                 options = table_options()) 
+                       %>% formatStyle('Domain', backgroundColor = col1)
+                       %>% formatStyle(c('Source Rep1'), backgroundColor = col2)
+                       %>% formatStyle(c('Records Rep1'), backgroundColor = col2)
+                       %>% formatStyle(c('Rejects Rep1'), backgroundColor = col4))
             } else {
                 return(datatable(df,
+                                 class = "cell-border",
                                  filter = list(position = 'top', clear = FALSE),
-                                 options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                       %>% formatStyle('Domain', backgroundColor = 'azure')
-                       %>% formatStyle(c('Source Rep1','Source Rep2' ), backgroundColor = 'aquamarine')
-                       %>% formatStyle(c('Records Rep1', 'Records Rep2'), backgroundColor = 'cyan')
-                       %>% formatStyle(c('Rejects Rep1', 'Rejects Rep2'), backgroundColor = 'lightcoral'))
+                                 options = table_options()) 
+                       %>% formatStyle('Domain', backgroundColor = col1)
+                       %>% formatStyle(c('Source Rep1','Source Rep2' ), backgroundColor = col2)
+                       %>% formatStyle(c('Records Rep1', 'Records Rep2'), backgroundColor = col3)
+                       %>% formatStyle(c('Rejects Rep1', 'Rejects Rep2'), backgroundColor = col4))
             }
             
           }
@@ -264,8 +280,9 @@ server <- function(input, output, session) {
             list <- get_all_reports_with_dataset(reports())
             df <- get_all_DatasetsSummary(list)
             return(datatable(df,
+                             class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
-                             options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                             options = table_options()))
           }
           if(compareWhat() == "Details" && !(focusSummary() == "reports missing" || focusSummary() == "" || focusSummary() == "and") ){
             list <- get_all_reports_with_details(reports())
@@ -275,44 +292,44 @@ server <- function(input, output, session) {
             if(ncol(df) == 3){
               return(datatable(df, 
                                filter = list(position = 'top', clear = FALSE),
-                               options = list(pageLength = 50, 
-                                              search = list(regex=TRUE, caseInsensitiv = FALSE),
-                                              filter = list(position = 'top', clear = FALSE))) 
-                     %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = 'azure'))
+                               options = table_options()) 
+                     %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = col1))
             }
             if(ncol(df) == 5){
                 return(datatable(df, 
+                                 class = "cell-border",
                                  filter = list(position = 'top', clear = FALSE),
-                                 options = list(pageLength = 50, 
-                                                    search = list(regex=TRUE, caseInsensitiv = FALSE),
-                                                    filter = list(position = 'top', clear = FALSE))) 
-                       %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = 'azure')
-                       %>% formatStyle(c('Record_Rep1'), backgroundColor = 'aquamarine')
-                       %>% formatStyle(c('Count_Rep1'), backgroundColor = 'cyan'))
+                                 options = table_options()) 
+                       %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = col1)
+                       %>% formatStyle(c('Record_Rep1'), backgroundColor = col2)
+                       %>% formatStyle(c('Count_Rep1'), backgroundColor = col3))
             }
             if(ncol(df) == 7){
                 return(datatable(df, 
+                                 class = "cell-border",
                                  filter = list(position = 'top', clear = FALSE),
-                                 options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                       %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = 'azure')
-                       %>% formatStyle(c('Record_Rep1','Record_Rep2' ), backgroundColor = 'aquamarine')
-                       %>% formatStyle(c('Count_Rep1', 'Count_Rep2'), backgroundColor = 'cyan'))
+                                 options = table_options()) 
+                       %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = col1)
+                       %>% formatStyle(c('Record_Rep1','Record_Rep2' ), backgroundColor = col2)
+                       %>% formatStyle(c('Count_Rep1', 'Count_Rep2'), backgroundColor = col3))
             }
             if(ncol(df) == 9){
               return(datatable(df, 
+                               class = "cell-border",
                                filter = list(position = 'top', clear = FALSE),
-                               options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                     %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = 'azure')
-                     %>% formatStyle(c('Record_Rep1','Record_Rep2', 'Record_Rep3' ), backgroundColor = 'aquamarine')
-                     %>% formatStyle(c('Count_Rep1', 'Count_Rep2', 'Count_Rep3'), backgroundColor = 'cyan'))
+                               options = table_options()) 
+                     %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = col1)
+                     %>% formatStyle(c('Record_Rep1','Record_Rep2', 'Record_Rep3' ), backgroundColor = col2)
+                     %>% formatStyle(c('Count_Rep1', 'Count_Rep2', 'Count_Rep3'), backgroundColor = col3))
             } else {
               print(ncol(df))
               return(datatable(df, 
+                               class = "cell-border",
                                filter = list(position = 'top', clear = FALSE),
-                               options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))) 
-                     %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = 'azure')
-                     %>% formatStyle(c('Record_Rep1','Record_Rep2', 'Record_Rep3' ), backgroundColor = 'aquamarine')
-                     %>% formatStyle(c('Count_Rep1', 'Count_Rep2', 'Count_Rep3'), backgroundColor = 'cyan'))
+                               options = table_options()) 
+                     %>% formatStyle(c('Variables', "Values", "P21 ID"), backgroundColor = col1)
+                     %>% formatStyle(c('Record_Rep1','Record_Rep2', 'Record_Rep3' ), backgroundColor = col2)
+                     %>% formatStyle(c('Count_Rep1', 'Count_Rep2', 'Count_Rep3'), backgroundColor = col3))
               
             }
         }}
@@ -326,12 +343,14 @@ server <- function(input, output, session) {
         if (isTRUE(dplyr::all_equal(reports_merge()[[1]], reports_merge()[[2]]))) {
             if(get_creation_data(input$file_paths_merge$datapath[1])>get_creation_data(input$file_paths_merge$datapath[2])){
               return(datatable(reports_merge()[[1]], 
+                               class = "cell-border",
                                filter = list(position = 'top', clear = FALSE),
-                               options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                               options = table_options()))
             } else {
               return(datatable(reports_merge()[[2]], 
+                               class = "cell-border",
                                filter = list(position = 'top', clear = FALSE),
-                               options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))))}
+                               options = table_options()))}
         }
         #merge modus - by default uses the younger report as base and merges the older comments
         if(input$youngOld == "Younger Report"){
@@ -342,9 +361,11 @@ server <- function(input, output, session) {
           merge_df <- get_merged_comments(dfy, dfo)
           dfds <- get_default_show_df(dfy,dfo)
           df <- get_show_df(dfds, merge_df, "young")
-          return(datatable(df, 
-               filter = list(position = 'top', clear = FALSE),
-               options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))))
+          return(
+            datatable(df, 
+                      class = "cell-border",
+                      filter = list(position = 'top', clear = FALSE),
+                      options = table_options()))
         } else {
           df1 <- reports_merge()[[1]]
           df2 <- reports_merge()[[2]]
@@ -354,8 +375,9 @@ server <- function(input, output, session) {
           dfds <- get_default_show_df(dfo,dfy)
           df <- get_show_df(dfds, merge_df, "old")
           return(datatable(df, 
+                           class = "cell-border",
                            filter = list(position = 'top', clear = FALSE),
-                           options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))))
+                           options = table_options()))
           }
       }
       return(NULL)
