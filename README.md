@@ -8,16 +8,26 @@ the program does not work.
 
 
 ## How to Use
-###Show & Compare Mode
-When the programme is started, the compare mode is automatically selected. In the second menu item "Select P21 Reports", any number of reports can be selected using browse. The remaining buttons have the following function.
+Show & Compare Mode
+When the program is started, the compare mode is automatically selected. In the second menu item "Select P21 Reports", any number of reports can be selected using browse. The remaining buttons have the following function.
 
-Search Fields.
+search Fields.
 Each column has his own search field. Moreover there is a general search window, to address all columns.
 All fields support standard regEx expressions. If you need help, I recommend (https://regexr.com/).
 
-Select Report 
+select Report 
 Choose the report you want to see. Works just in the "show" mode, that means compare: -none-
+If you are not completely shure which report number is which report you can check the
+first entry in the Validation Summary in the show mode. This entry is not present in 
+the original P21 Report, but was addedet to show the original file name.
+
+select sheet
+Choose the sheet you want to see. Works just in the "show" mode, that means compare: -none-
+
+compare:
+Choose the sheet you want to compare. Shows the comparison tables on the right side,
+if a report does not contain this sheet, it may be that this report is not shown in the table. For 
+many sheet you can set a focus on specific domains with the focus on button.
 
 
-Select sheet
-Chose the sheet you want to see. Works just in the "show" mode, that means compare: -none-
+###Merge Comments Mode

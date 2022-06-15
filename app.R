@@ -5,7 +5,7 @@
 # latest Update: 12.04.2022
 
 library(pacman)
-pacman::p_load(tidyverse, readxl, shiny, DT, openxlsx)
+pacman::p_load(tidyverse, readxl, shiny, shinyWidgets, DT, openxlsx)
 #this file and the tools.R must be in the same folder
 #set the current working dir to the destination of this file, works just in RSTudio
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -15,10 +15,19 @@ source("tools.R")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("P21RepComp"),
-
+ 
+  tags$head(
+    tags$style(
+      ".title 
+            {
+                background:url('mainanalytics_logo.svg');
+                background-repeat: no-repeat;
+                background-size: 35% 110%;
+            }")),
+  
+  headerPanel(
+    h1("P21RepComp", class = "title")),
+  
     #Sidebar - functions to display the buttons and input functionality,
     #be careful some are reactive and some are not
     sidebarLayout(
@@ -27,19 +36,19 @@ ui <- fluidPage(
             tabsetPanel(
               #buttons for the compare modus
               tabPanel("Show & Compare",
-                fileInput("file_paths", "Select P21 Reports", multiple = TRUE, accept=c(".xlsx")),
+                fileInput("file_paths", "select P21 Reports", multiple = TRUE, accept=c(".xlsx")),
                 selectizeInput("repNum", "select Report", choices = NULL),
-                selectInput("sheet", "Select sheet", choices = 
+                selectInput("sheet", "select sheet", choices = 
                             c("Validation Summary","Dataset Summary",
                               "Issue Summary", "Details", "Rules")),
                 selectInput("compareWhat",
                         "compare:",
                         choices = c("-none-","Summary", "Dataset Summary","Issue Summary", "Details")),
-                selectizeInput("focus", "focus on", choices = NULL)),
+                selectizeInput("focus", "focus on:", choices = NULL)),
               #buttons for the merge modus
               tabPanel("Merge Comments",
                   fileInput("file_paths_merge", "Select two Reports", multiple = TRUE, accept=c(".xlsx")),
-                  radioButtons("youngOld", "current Report based on", c("Young Report", "Old Report")),
+                  radioButtons("youngOld", "current Report based on", c("Younger Report", "Older Report")),
                   #download is to be interpreted as "save" because the app is concepted as offline
                   downloadButton("downloadData", label = "save Report", class = NULL)
                 ),
@@ -152,17 +161,24 @@ server <- function(input, output, session) {
     output$contents <- DT::renderDataTable({
       #check witch modus the program runs, compare or merge comments
       if(input$tabset == "Show & Compare"){
+          #when no report are load, show nothing
           if(is_empty(reports()))
             return(NULL)
+          #show Mode: Details
           if(compareWhat() == "none" && showsheet() == "Details" && focusSummary() != "" &&  focusSummary() != "all"){
             list <- get_all_reports_with_details(reports())
             df <- list[[reportNumber()]] %>% filter(Domain == focusSummary())
             return(datatable(df , 
                              filter = list(position = 'top', clear = FALSE),
                              options = list(pageLength = nrow(df), search = list(regex=TRUE, caseInsensitiv = FALSE))))
-          }
+          } else 
+          #show Mode: show simply the raw data sheet
           if(compareWhat() == "none"){  
-            return(datatable(reports()[[reportNumber()]][[input$sheet]], 
+            df <- reports()[[reportNumber()]][[showsheet()]]
+            if(input$sheet == "Validation Summary" && !is.na(reportNumber())){
+              df[1,1] <- paste("FileName:", input$file_paths$name[reportNumber()])
+            }
+            return(datatable(df, 
                              filter = list(position = 'top', clear = FALSE),
                              options = list(pageLength = 20 , search = list(regex=TRUE, caseInsensitiv = FALSE))))
           }
@@ -318,7 +334,7 @@ server <- function(input, output, session) {
                                options = list(pageLength = 50, search = list(regex=TRUE, caseInsensitiv = FALSE))))}
         }
         #merge modus - by default uses the younger report as base and merges the older comments
-        if(input$youngOld == "Young Report"){
+        if(input$youngOld == "Younger Report"){
           df1 <- reports_merge()[[1]]
           df2 <- reports_merge()[[2]]
           dfy <- get_younger_report(df1, df2, input$file_paths_merge$datapath)
@@ -348,13 +364,13 @@ server <- function(input, output, session) {
     #download the new merged p21 report
     output$downloadData <- downloadHandler(
       filename = function() {
-        if(input$youngOld == "Young Report"){
+        if(input$youngOld == "Younger Report"){
           paste(younger_name(), sep="")
       } else {
           paste(older_name(), sep="")
       }},
       content = function(file) {
-        if(input$youngOld == "Young Report"){
+        if(input$youngOld == "Younger Report"){
           write_new_report(younger_path(), reports_merge(),"younger", file, input$file_paths_merge$datapath)
         } else {
           write_new_report(older_path(), reports_merge(),"older", file, input$file_paths_merge$datapath)
