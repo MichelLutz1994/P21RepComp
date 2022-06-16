@@ -180,10 +180,16 @@ server <- function(input, output, session) {
           } else 
           #show Mode: show simply the raw data sheet
           if(compareWhat() == "none"){  
-            df <- reports()[[reportNumber()]][[showsheet()]]
+            df <- reports()[[req(reportNumber())]][[req(showsheet())]]
+            if(is_empty(df)){
+              dfe <- as.data.frame(matrix(paste("Report" , reportNumber(), " has no " , showsheet(), " sheet"), 1, 1))
+              colnames(dfe) <- c("Info")
+              return(datatable(dfe))
+            }
             if(input$sheet == "Validation Summary" && !is.na(reportNumber())){
               df[1,1] <- paste("FileName:", input$file_paths$name[reportNumber()])
             }
+        
             return(datatable(df, 
                              class = "cell-border",
                              filter = list(position = 'top', clear = FALSE),
