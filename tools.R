@@ -2,8 +2,12 @@
 #Author: Michel Lutz
 #Date: 12.04.2022
 
-#table styling
-table_options <- function(){
+# this file contains all functions witch are necessary for the handling
+# of the P21 report files
+##########################################################################
+
+#for table styling
+table_options <- function(df){
   list(
     pageLength = min(nrow(df),50), 
     search = list(regex=TRUE, caseInsensitiv = FALSE),
@@ -18,7 +22,6 @@ table_options <- function(){
     
   )
 }
-
 
 #loads all excel files given in the file list
 loadReports <- function(file_list){
@@ -440,6 +443,7 @@ get_all_DatasetsSummary <- function(list){
 
 ################################################################################
 #functions for Details
+
 get_all_reports_with_details <- function(reports){
   list <- c()
   for(i in 1:length(reports)){
@@ -453,6 +457,7 @@ get_all_reports_with_details <- function(reports){
   }
   return(reportsList)
 }
+
 #returns a list with all domains occuring in the reports
 get_domain_set <- function(list){
   domain_set <- c()
@@ -461,6 +466,7 @@ get_domain_set <- function(list){
   }
   return(domain_set)
 } 
+
 #returns a list with an entry for each report of a domain 
 get_domain_list <- function(list, domain) {
   df_list <- c()
@@ -479,6 +485,7 @@ get_domain_list <- function(list, domain) {
   }
   return(df_list)
 }
+
 #returns the set with all entrys, must be of the same domain
 get_entry_set <- function(domain_list){
   entry_set <- c()
@@ -487,6 +494,8 @@ get_entry_set <- function(domain_list){
   }
   return(entry_set)
 }
+
+
 #function make the entry_set to a df with the default coloms Variables, Values, Pinnacle 21 ID
 get_default_details_df <- function(entry_set){
   df <- data.frame()
@@ -498,6 +507,7 @@ get_default_details_df <- function(entry_set){
   }
   return(df)
 }
+
 #retunrs a domain sepcific df !CAVE default_details_domain_ ist wrong
 get_domain_comp_df <- function(domain_list){
   entry_set <- get_entry_set(domain_list)
@@ -549,12 +559,23 @@ correct_domain <- function(df) {
   return(df)
 }
 
+#if there are no comments add a empty comment column
+correct_comment_col <- function(df){
+  if(is.null(df$X6)){
+    comment <- c(NA, "Comment", rep(NA, nrow(df)-2))
+    return(cbind(df, comment))
+  }
+  return(df)
+}
+
 #get the two issue sheet that will be merged
 loadReports_merge <- function(datapath){
   df1 <- read.xlsx(datapath[1], sheet = "Issue Summary", cols=c(1, 2, 3,4,5,6,7))
   df1 <- correct_domain(df1)
+  df1 <- correct_comment_col(df1)
   df2 <- read.xlsx(datapath[2], sheet = "Issue Summary", cols=c(1, 2, 3,4,5,6,7))
   df2 <- correct_domain(df2)
+  df2 <- correct_comment_col(df2)
   return(reports <- list(df1, df2))
 }
 
@@ -633,12 +654,21 @@ get_merged_comments <- function(dfy, dfo) {
   dfo <- add_merge_col(dfo)
   merged_col1 <- c()
   merged_col2 <- c()
+  #bugfix: to late to write pretty code
+  #switchflag <- FALSE
+  #if(nrow(dfy) < nrow(dfo)){
+  #  dfHelp <- dfy
+  #  dfy <- dfo
+  #  dfo <- dfy
+  #  switchflag <- TRUE
+  #}
   for (i in 1:nrow(dfy)) {
     #check if the row contains the same entry
     if (dfy$merge_col[i] %in% dfo$merge_col) {
       if (is.na(dfy[i, 6])) {
         #young has no entry -> use the old entry
-        merged_col1  <- c(merged_col1, dfo[i, 6])
+        index <- find_index(dfo, dfy$merge_col[[i]])
+        merged_col1  <- c(merged_col1, dfo[index, 6])
         merged_col2 <- c(merged_col2, "")
       } else if (is.na(dfo[i, 6])) {
         #old has no entry -> use the young entry
@@ -647,12 +677,32 @@ get_merged_comments <- function(dfy, dfo) {
       } else {
         #merge
         merged_col1 <- c(merged_col1, dfy[i, 6])
-        merged_col2 <- c(merged_col2, dfo[i, 6])
+        index <- find_index(dfo, dfy$merge_col[[i]])
+        merged_col2 <- c(merged_col2, dfo[index, 6])
       }
+    }else {
+      merged_col1 <- c(merged_col1, "")
+      merged_col2 <- c(merged_col2, "")
     }
   }
+  #if(switchflag){
+  #  merged_colHelp <- merged_col1
+  #  merged_col1 <- merged_col2
+  #  merged_col2 <- merged_colHelp
+  #}
   return(df_merge <- data.frame(merged_col1, merged_col2))
 }
+
+#returns the index in which the merge entry can be found in the target dataset
+find_index <- function(df, entry){
+  which(sapply(df$merge_col, function(x) entry %in% x))
+}
+
+
+
+
+
+
 
 #Decapitated: returns a default data frame with just the first 3 cols
 get_default_union_df <- function(dfy, dfo) {
@@ -696,9 +746,9 @@ get_show_df <- function(dfds, merge_df, mode){
   dfs <- cbind(dfds, merge_df)
   df <- dfs[c(3:nrow(dfs)),]
   if(mode == "young"){ 
-    colnames(df) <- c("Domain", "P21ID", "Message", "Found\nRepYoung", "Found\nRepOld", "Commentar\nYoung", "Commentar\nOld")
+    colnames(df) <- c("Domain", "P21ID", "Message", "Found\nRepYoung", "Found\nRepOld", "Commentar\nMerge", "Commentar\nConflict")
   } else {
-    colnames(df) <- c("Domain", "P21ID", "Message", "Found\nRepOld", "Found\nRepYoung", "Commentar\nOld", "Commentar\nYoung")
+    colnames(df) <- c("Domain", "P21ID", "Message", "Found\nRepOld", "Found\nRepYoung", "Commentar\nMerge", "Commentar\nConflict")
     }
   
   return(df)

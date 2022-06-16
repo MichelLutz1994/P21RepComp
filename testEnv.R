@@ -28,19 +28,6 @@ reportsList <- get_reportList(reports)
 df <- combine_id_and_message(reportsList)
 
 
-matrix("Report", 1, 1)
-
-
-coln
-
-
-
-
-
-
-
-
-
 
 #test changing a rep
 wb <- loadWorkbook("C:\\Users\\Michel Lutz\\OneDrive\\Documents\\Arbeit\\Mainanalytics\\R\\p21files\\test_comment_1.xlsx")
@@ -50,7 +37,7 @@ saveWorkbook(wb, "test_1.xlsx", overwrite = TRUE)
 openXL("test_1.xlsx")
 
 
-datapath <- c("C:\\Users\\Michel Lutz\\OneDrive\\Documents\\Arbeit\\Mainanalytics\\R\\p21files\\test_comment_1.xlsx", "C:\\Users\\Michel Lutz\\OneDrive\\Documents\\Arbeit\\Mainanalytics\\R\\p21files\\test_comment_2.xlsx")
+datapath <- c("C:\\Users\\Michel Lutz\\OneDrive\\Documents\\Arbeit\\Mainanalytics\\R\\f\\rep1.xlsx", "C:\\Users\\Michel Lutz\\OneDrive\\Documents\\Arbeit\\Mainanalytics\\R\\f\\rep2.xlsx")
 reports_merge<- loadReports_merge(datapath)
 
 df1 <- reports_merge[[1]]
@@ -59,11 +46,26 @@ dfy <- get_younger_report(df1, df2, datapath)
 dfo <- get_older_report(df1, df2, datapath)
 #dfy <- add_merge_col(dfy)
 #dfo <- add_merge_col(dfo)
+#dfy <- add_merge_col(dfy)
+#dfo <- add_merge_col(dfo)
 
 
 merge_df <- get_merged_comments(dfy, dfo)
 dfds <- get_default_show_df(dfy,dfo)
 df <- get_show_df(dfds, merge_df, "young")
+
+
+merge_df <- get_merged_comments(dfo, dfy)
+dfds <- get_default_show_df(dfo,dfy)
+df <- get_show_df(dfds, merge_df, "old")
+
+
+
+
+
+
+
+
 
 wb <- loadWorkbook("C:\\Users\\Michel Lutz\\OneDrive\\Documents\\Arbeit\\Mainanalytics\\R\\p21files\\test_comment_1.xlsx")
 for(i in 1:length(merge_df[,1])){
